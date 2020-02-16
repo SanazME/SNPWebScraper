@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-
-set -x 
-
-docker run --rm -v "$PWD":/usr/src/app -w /usr/src/app golang ./runInDocker.sh
-# ./runInDocker.sh
+set -xe
+docker image build -t snpedia:1.0 . > ./build.log # send the build output to a build.log file
+docker run --rm -v "$PWD":/usr/src/app -w /usr/src/app snpedia:1.0 ./runInDocker.sh

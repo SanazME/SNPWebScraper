@@ -3,8 +3,6 @@ package main
 import (
     "fmt"
     // "os"
-    "encoding/json"
-
     "cgt.name/pkg/go-mwclient"
     "cgt.name/pkg/go-mwclient/params"
 )
@@ -17,6 +15,8 @@ func main() {
         panic(err)
     }
 
+    fmt.Println("Client :", w)
+
     parameters := params.Values{
         "list": "categorymembers",
         "cmtitle": "Category:Is_a_snp",
@@ -25,27 +25,15 @@ func main() {
     // Print out the http request and response to screen
     // w.SetDebug(os.Stderr)
     q := w.NewQuery(parameters) // w being an instantiated Client
-    queryRaw,err := w.GetRaw(parameters) // w being an instantiated Client
 
-    // Decode raw json 
-    // fmt.Println("queryRaw:",queryRaw)
-    var dat map[string]interface{}
-    json.Unmarshal(queryRaw, &dat)
-    // fmt.Println("decodedQuery:",dat)
-    // fmt.Println("\n\n")
+    // Set verbose debug
+    // w.SetDebug(os.Stdout)
 
-    // Pass in a slice of SNP names
-    // snpNames := []string{"Rs53576","Rs1815739"}
-    // w.GetPagesByName(snpNames...)
-
-    // w.GetPagesByID("4105","9994")
-
-    // Define dat for decoding json into GO
-    // var dat map[string]interface{}
-
-
-    for i:=0; i < 5; i++{
+    // Loop over SNP pages and extract list of SNP from each page
+    for i:=0; i < 1; i++{
         q.Next();
+        
+        
         // return the json response
         /*
         the query key has categorymemebers fields which itself is an array of objects with the following fields:
@@ -58,23 +46,33 @@ func main() {
                 "pageid": 10244,
                 "title": "I1000001"
             },
-      */
+        */
         response := q.Resp();
-        // fmt.Println(response)
         fmt.Println("\n\n")
 
-        // return the value of response in GO format which in this case is a map and categorymembers is an array of maps for the first page returned (jason package)
         /*
+        Returns an Array Object in jason object format
         &{map[categorymembers:
             [map[ns:0 pageid:10244 title:I1000001] map[ns:0 pageid:13450 title:I1000003] map[ns:0 pageid:19115 title:I1000004] map[ns:0 pageid:12979 title:I1000015] map[ns:0 pageid:13973 title:I3000001] map[ns:0 pageid:19671 title:I3000007] map[ns:0 pageid:19201 title:I3000014] map[ns:0 pageid:19667 title:I3000021] map[ns:0 pageid:19195 title:I3000029] map[ns:0 pageid:19177 title:I3000033]]] true}
         */
-        // var members, err = response.GetObject("query");
         var members, _ = response.GetObjectArray("query","categorymembers");
 
         // Loop over members array
         for _, member := range members {
             var title, _ = member.GetString("title")
+            var pageid, _ = member.GetNumber("pageid")
+    
             fmt.Println(title)
+            fmt.Println(pageid)
+
+            // parse each page 
+            // page,timestamp,err := w.GetPageByID("19177")
+            page,_ := w.GetPagesByID(pageid.String())
+
+            fmt.Println("page: ", page[title].Content)
+            // fmt.Println("timestamp", timestamp)
+            fmt.Println("\n\n")
+
         }       
 
     }
